@@ -2,7 +2,7 @@ from transformers import pipeline
 
 classifier = pipeline(
     "sentiment-analysis",
-    model="distilbert/distilbert-base-uncased-finetuned-sst-2-english"
+    model="cardiffnlp/twitter-roberta-base-sentiment-latest"
 )
 while True:
     text = input("Enter a sentence: ")
@@ -10,10 +10,19 @@ while True:
     if text.lower() == "exit":
         print("Exiting the program.")
         break
-    result = classifier(text)[0]
+    results = classifier(text, top_k=3)
+    best_result = max(results, key=lambda result: result["score"])
+    print("\nSentiment probabilities:")
+    for result in results:
+        label = result["label"]
+        score = result["score"] * 100
 
-    label = result["label"]
-    confidence = result["score"] * 100
+        print(f"{label.capitalize()}: {score:.2f}%")
+    
+    print("\nFINAL RESULT:")
 
-    print(f"\nSentiment: {label}")
-    print(f"Confidence: {confidence:.2f}%")    
+    if best_result["score"] >= 0.7:
+        print(f"SENTIMENT: {best_result['label'].capitalize()} (Confidence: {best_result['score'] * 100:.2f}%)")
+    else:
+        print("SENTIMENT: Uncertain (Confidence below threshold)")
+
